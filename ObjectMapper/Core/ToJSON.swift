@@ -13,49 +13,51 @@ class ToJSON {
     func basicType<N>(field: N, key: String, inout dictionary: [String : AnyObject]) {
 		var temp = dictionary
 		var currentKey = key
-
+		
+		if let field: AnyObject = validJSON(field) {
+			dictionary[currentKey] = field
+		}
+    }
+	
+	/// If `field` argument is valid as JSON, returns itself. Otherwise returns nil.
+	func validJSON<N>(field: N) -> AnyObject? {
         switch field {
         // basic Types
         case let x as Bool:
-            dictionary[currentKey] = x
+			return x
         case let x as Int:
-            dictionary[currentKey] = x
+			return x
         case let x as Double:
-            dictionary[currentKey] = x
+			return x
         case let x as Float:
-            dictionary[currentKey] = x
+			return x
         case let x as String:
-            dictionary[currentKey] = x
+			return x
 
         // Arrays with basic types
-        case let x as Array<Bool>:
-            dictionary[currentKey] = x
-        case let x as Array<Int>:
-            dictionary[currentKey] = x
-        case let x as Array<Double>:
-            dictionary[currentKey] = x
-        case let x as Array<Float>:
-            dictionary[currentKey] = x
-        case let x as Array<String>:
-            dictionary[currentKey] = x
+		case let array as Array<AnyObject>:
+			for val in array {
+				if validJSON(val) == nil {
+					return nil
+				}
+			}
+			return array
 			
         // Dictionaries with basic types
-        case let x as Dictionary<String, Bool>:
-            dictionary[currentKey] = x
-        case let x as Dictionary<String, Int>:
-            dictionary[currentKey] = x
-        case let x as Dictionary<String, Double>:
-            dictionary[currentKey] = x
-        case let x as Dictionary<String, Float>:
-            dictionary[currentKey] = x
-        case let x as Dictionary<String, String>:
-            dictionary[currentKey] = x
+		case let dictionary as Dictionary<String, AnyObject>:
+			for (key, val) in dictionary {
+				if validJSON(val) == nil {
+					return nil
+				}
+			}
+			return dictionary
+			
         default:
             //println("Default")
-            return
-        }
-    }
-    
+            return nil
+		}
+	}
+
     func optionalBasicType<N>(field: N?, key: String, inout dictionary: [String : AnyObject]) {
         if let field = field {
             basicType(field, key: key, dictionary: &dictionary)
